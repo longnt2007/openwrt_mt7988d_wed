@@ -173,6 +173,7 @@ platform_do_upgrade() {
 	qihoo,360t7-ubi|\
 	routerich,ax3000-ubootmod|\
 	routerich,be7200|\
+	viettel,32x6|\
 	snr,snr-cpe-ax2|\
 	tplink,tl-xdr4288|\
 	tplink,tl-xdr6086|\

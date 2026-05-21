@@ -3210,6 +3210,31 @@ define Device/unielec_u7981-01-nand
 endef
 TARGET_DEVICES += unielec_u7981-01-nand
 
+define Device/viettel_32x6
+  DEVICE_VENDOR := Viettel
+  DEVICE_MODEL := 32x6
+  DEVICE_DTS := mt7981b-viettel-32x6
+  DEVICE_DTS_DIR := ../dts
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  KERNEL_IN_UBI := 1
+  UBOOTENV_IN_UBI := 1
+  IMAGES := sysupgrade.itb
+  KERNEL_INITRAMFS_SUFFIX := -recovery.itb
+  KERNEL := kernel-bin | gzip
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  IMAGE/sysupgrade.itb := append-kernel | \
+	fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | \
+	append-metadata
+  DEVICE_PACKAGES := 
+  ARTIFACTS := preloader.bin bl31-uboot.fip
+  ARTIFACT/preloader.bin := mt7981-bl2 spim-nand-ddr3
+  ARTIFACT/bl31-uboot.fip := mt7981-bl31-uboot viettel_32x6
+endef
+TARGET_DEVICES += viettel_32x6
+
 define Device/wavlink_wl-wn536ax6-a
   DEVICE_VENDOR := WAVLINK
   DEVICE_MODEL := WL-WN536AX6
