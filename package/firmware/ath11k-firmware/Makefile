@@ -107,6 +107,14 @@ define Package/ath11k-firmware-ipq5018-qcn6122/install
 	$(INSTALL_DATA) \
 		$(BUILD_DIR)/$(ATH11K_LEGACY_FW_SUBDIR)/ath11k-firmware/IPQ5018_QCN6122_QCN6122/hw1.0/2.7.0.1/WLAN.HK.2.7.0.1-01744-QCAHKSWPL_SILICONZ-1/qcn6122/*.* \
 		$(1)/lib/firmware/ath11k/QCN6122/hw1.0/
+	cp \
+		$(TOPDIR)/package/firmware/ath11k-firmware/IPQ5018/board-2.bin \
+		$(TOPDIR)/package/firmware/ath11k-firmware/IPQ5018/cal-ahb-c000000.wifi.bin \
+		$(1)/lib/firmware/ath11k/IPQ5018/hw1.0/
+	cp \
+		$(TOPDIR)/package/firmware/ath11k-firmware/QCN6122/board-2.bin \
+		$(TOPDIR)/package/firmware/ath11k-firmware/QCN6122/cal-ahb-b00a040.wifi.bin \
+		$(1)/lib/firmware/ath11k/QCN6122/hw1.0/
 endef
 
 define Package/ath11k-firmware-ipq6018/install
