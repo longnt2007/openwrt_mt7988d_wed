@@ -24,10 +24,48 @@ index 5bb739cd07..9c422a0914 100644
  
  	vif->bss_conf.link_id = 0;
  }
+diff --git a/mac80211.c b/mac80211.c
+index 62f3c6e40a..7f5db8db52 100644
+--- a/mac80211.c
++++ b/mac80211.c
+@@ -1322,7 +1322,7 @@ mt76_check_ccmp_pn(struct mt76_dev *dev, struct sk_buff *skb)
+ 		 * All further fragments will be validated by mac80211 only.
+ 		 */
+ 		if (ieee80211_is_frag(hdr) &&
+-		    !ieee80211_is_first_frag(hdr->frame_control))
++		    !ieee80211_is_first_frag(hdr->seq_ctrl))
+ 			return;
+ 	}
+ 
 diff --git a/tx.c b/tx.c
 index c45ebb2e54..824f34dae7 100644
 --- a/tx.c
 +++ b/tx.c
+@@ -611,11 +611,22 @@ mt76_txq_schedule_list(struct mt76_phy *phy, enum mt76_txq_id qid)
+ 		if (!mt76_txq_stopped(q))
+ 			n_frames = mt76_txq_send_burst(phy, q, mtxq, wcid);
+ 
+-		ieee80211_return_txq(phy->hw, txq, false);
+-
+ 		if (unlikely(n_frames < 0))
+ 			return n_frames;
+ 
++		/*
++		 * Keep the station in the airtime scheduler only while it
++		 * makes progress or the shared queue is stopped. A PS
++		 * station that cannot be drained consumes no airtime, so
++		 * its DRR deficit never goes negative and returning it here
++		 * would pin it at the head of the device-wide active_txqs
++		 * list, starving all other stations on every band. Leave it
++		 * unscheduled instead and let mt76_tx_complete_skb() re-arm
++		 * it once a buffered frame completes.
++		 */
++		if (n_frames > 0 || mt76_txq_stopped(q))
++			ieee80211_return_txq(phy->hw, txq, false);
++
+ 		ret += n_frames;
+ 	}
+ 
 @@ -964,7 +964,7 @@ mt76_token_release(struct mt76_dev *dev, int token, bool *wake)
  #endif
  	}
@@ -305,6 +343,30 @@ index 061ab66ff6..19b0dc9dcc 100644
  }
  
  u32 mt7996_wed_init_buf(void *ptr, dma_addr_t phys, int token_id)
+@@ -2330,8 +2330,6 @@ void mt7996_mac_set_coverage_class(struct mt7996_phy *phy)
+ {
+ 	s16 coverage_class = phy->coverage_class;
+ 	struct mt7996_dev *dev = phy->dev;
+-	struct mt7996_phy *phy2 = mt7996_phy2(dev);
+-	struct mt7996_phy *phy3 = mt7996_phy3(dev);
+ 	u32 reg_offset;
+ 	u32 cck = FIELD_PREP(MT_TIMEOUT_VAL_PLCP, 231) |
+ 		  FIELD_PREP(MT_TIMEOUT_VAL_CCA, 48);
+@@ -2343,14 +2341,6 @@ void mt7996_mac_set_coverage_class(struct mt7996_phy *phy)
+ 	if (!test_bit(MT76_STATE_RUNNING, &phy->mt76->state))
+ 		return;
+ 
+-	if (phy2)
+-		coverage_class = max_t(s16, dev->phy.coverage_class,
+-				       phy2->coverage_class);
+-
+-	if (phy3)
+-		coverage_class = max_t(s16, coverage_class,
+-				       phy3->coverage_class);
+-
+ 	offset = 3 * coverage_class;
+ 	reg_offset = FIELD_PREP(MT_TIMEOUT_VAL_PLCP, offset) |
+ 		     FIELD_PREP(MT_TIMEOUT_VAL_CCA, offset);
 diff --git a/mt7996/mt7996.h b/mt7996/mt7996.h
 index dcf2e5b8ed..014ff45f81 100644
 --- a/mt7996/mt7996.h
