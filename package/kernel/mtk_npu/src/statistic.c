@@ -395,6 +395,26 @@ int mtk_npu_statistic_init(struct platform_device *pdev)
 	 * npu_statistic_dir = dir;
 	 */
 
+	struct dentry *dir;
+
+	dir = debugfs_create_dir("npu_stats", npu_debugfs_root);
+	if (IS_ERR(dir)) {
+		NPU_ERR("failed to create statistic debugfs dir: %ld\n", PTR_ERR(dir));
+		return PTR_ERR(dir);
+	}
+
+	/* tunnel statistic (GRE/GRETAP/VXLAN/L2TP/PPTP counters) */
+	debugfs_create_file("tunnel", 0644, dir, NULL, &tnl_statistic_ops);
+	mtk_npu_tnl_statistic_enable(true);
+	pr_info("npu_statistic: tunnel statistic enabled\n");
+
+	/* MCU state statistic */
+	debugfs_create_file("mcu", 0644, dir, NULL, &mcu_statistic_ops);
+	mtk_npu_mcu_statistic_enable(true);
+	pr_info("npu_statistic: mcu statistic enabled\n");
+	
+	npu_statistic_dir = dir;
+
 	return 0;
 }
 

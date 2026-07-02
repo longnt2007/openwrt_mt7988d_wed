@@ -53,3 +53,4 @@ npu-$(CONFIG_SYSFS) += sysfs.o
 npu-$(CONFIG_SYSFS) += sysfs-net.o
 
 npu-$(CONFIG_DEBUG_FS) += debugfs.o
+npu-$(CONFIG_MTK_NPU_STATISTIC) += statistic.o

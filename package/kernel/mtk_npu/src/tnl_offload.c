@@ -30,6 +30,7 @@
 #include "npu/protocol/network/ip.h"
 #include "npu/protocol/network/ipv6.h"
 #include "npu/tunnel.h"
+#include "npu/statistic.h"
 
 #define NPU_PPE_ENTRY_BUCKETS		(64)
 #define NPU_PPE_ENTRY_BUCKETS_BIT	(6)
@@ -1150,6 +1151,11 @@ int mtk_npu_tnl_offload_post_init(struct platform_device *pdev)
 	/* TODO: adjust based on platform */
 	npu_tnl.tbl_addr = cmd.ret[0] - 0x09100000;
 
+	pr_info("npu_statistic: tunnel statistic init\n");
+	ret = mtk_npu_statistic_init(pdev);
+	if (ret)
+		pr_info("npu_statistic: init failed %d\n", ret);
+
 	return 0;
 }
 
@@ -1223,10 +1229,15 @@ struct npu_tnl_type *mtk_npu_tnl_type_get_by_path_type(enum net_device_path_type
 
 	for (; tnl_proto_type < __NPU_TUNNEL_TYPE_MAX; tnl_proto_type++) {
 		tnl_type = npu_tnl.offload_tnl_types[tnl_proto_type];
-		if (tnl_type->ndev_path_type == path)
+		if (!tnl_type) {
+			continue;
+		}
+		if (tnl_type->ndev_path_type == path) {
+			pr_debug("npu_tnl: path=%d matched slot[%d] (%s)\n",
+				 path, tnl_proto_type, tnl_type->type_name);
 			return tnl_type;
+		}
 	}
-
 	return ERR_PTR(-ENODEV);
 }
 EXPORT_SYMBOL(mtk_npu_tnl_type_get_by_path_type);
