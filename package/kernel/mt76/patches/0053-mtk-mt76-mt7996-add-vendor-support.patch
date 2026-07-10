@@ -208,7 +208,7 @@ index 6091efa17..475a4ea31 100644
 +++ b/mt7996/Makefile
 @@ -1,10 +1,11 @@
  # SPDX-License-Identifier: BSD-3-Clause-Clear
- EXTRA_CFLAGS += -DCONFIG_MTK_DEBUG
+ EXTRA_CFLAGS += -DCONFIG_MTK_NDEBUG
 +EXTRA_CFLAGS += -DCONFIG_MTK_VENDOR
  
  obj-$(CONFIG_MT7996E) += mt7996e.o

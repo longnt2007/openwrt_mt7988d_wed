@@ -1038,7 +1038,7 @@ index 69d2d4bb9..6091efa17 100644
 +++ b/mt7996/Makefile
 @@ -1,4 +1,5 @@
  # SPDX-License-Identifier: BSD-3-Clause-Clear
-+EXTRA_CFLAGS += -DCONFIG_MTK_DEBUG
++EXTRA_CFLAGS += -DCONFIG_MTK_NDEBUG
  
  obj-$(CONFIG_MT7996E) += mt7996e.o
  
@@ -2528,7 +2528,7 @@ new file mode 100644
 index 000000000..7ec126fe9
 --- /dev/null
 +++ b/mt7996/mtk_mcu.c
-@@ -0,0 +1,589 @@
+@@ -0,0 +1,591 @@
 +// SPDX-License-Identifier: ISC
 +/*
 + * Copyright (C) 2023 MediaTek Inc.
@@ -3039,6 +3039,7 @@ index 000000000..7ec126fe9
 +
 +		break;
 +	}
++#ifdef CONFIG_NL80211_TESTMODE
 +	case UNI_EVENT_BF_CAL_PHASE: {
 +		struct mt7996_ibf_cal_info *cal;
 +		struct mt7996_txbf_phase *phase;
@@ -3109,6 +3110,7 @@ index 000000000..7ec126fe9
 +
 +		break;
 +	}
++#endif
 +	default:
 +		dev_info(dev->mt76.dev, "%s: unknown bf event tag %d\n",
 +			 __func__, event->tag);
